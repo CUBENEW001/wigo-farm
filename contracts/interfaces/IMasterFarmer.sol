@@ -14,8 +14,6 @@ interface IMasterFarmer {
 
     function userInfo(uint256 _pid, address _user) external view returns (uint256, uint256);
     
-    function getPoolInfo(uint256 _pid) external view returns (address, uint256, uint256, uint256);
-
     function wigoBurn(uint256 _amount) external;
 
     function emergencyWithdraw(uint256 _pid) external;
