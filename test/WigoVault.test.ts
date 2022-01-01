@@ -34,12 +34,11 @@ describe("WigoVault", function () {
   })
 
   it("should set correct state variables", async function () {
-    this.vault = await this.WigoVault.deploy(this.wigo.address, this.bank.address, this.farmer.address, this.carol.address, this.treasury.address)
+    this.vault = await this.WigoVault.deploy(this.wigo.address, this.bank.address, this.farmer.address, this.carol.address)
     await this.vault.deployed()
 
     const token = await this.vault.token()
     const receiptToken = await this.vault.receiptToken()
-    const treasury = await this.vault.treasury()
     const admin = await this.vault.admin()
     const performanceFee = await this.vault.performanceFee()
     const callFee = await this.vault.callFee()
@@ -52,7 +51,6 @@ describe("WigoVault", function () {
 
     expect(token).to.equal(this.wigo.address)
     expect(receiptToken).to.equal(this.bank.address)
-    expect(treasury).to.equal(this.treasury.address)
     expect(admin).to.equal(this.carol.address)
     expect(performanceFee).to.equal(200)
     expect(callFee).to.equal(25)
@@ -66,7 +64,7 @@ describe("WigoVault", function () {
 
   context("Owner Permissions", function () {
     beforeEach(async function () {
-      this.vault = await this.WigoVault.deploy(this.wigo.address, this.bank.address, this.farmer.address, this.carol.address, this.treasury.address)
+      this.vault = await this.WigoVault.deploy(this.wigo.address, this.bank.address, this.farmer.address, this.carol.address)
       await this.vault.deployed()
     })
 
@@ -81,23 +79,11 @@ describe("WigoVault", function () {
       await expect(this.vault.connect(this.bob).setAdmin(this.alice.address, { from: this.bob.address })).to.be.revertedWith("Ownable: caller is not the owner")
       await expect(this.vault.connect(this.carol).setAdmin(this.alice.address, { from: this.carol.address })).to.be.revertedWith("Ownable: caller is not the owner")
     })
-
-    it("should allow owner and only owner to set treasury", async function () {
-      expect(await this.vault.treasury()).to.equal(this.treasury.address)
-
-      await expect(this.vault.connect(this.bob).setTreasury(this.bob.address, { from: this.bob.address })).to.be.revertedWith("Ownable: caller is not the owner")
-
-      await this.vault.connect(this.alice).setTreasury(this.bob.address, { from: this.alice.address })
-      expect(await this.vault.treasury()).to.equal(this.bob.address)
-
-      await expect(this.vault.connect(this.bob).setTreasury(this.alice.address, { from: this.bob.address })).to.be.revertedWith("Ownable: caller is not the owner")
-      await expect(this.vault.connect(this.carol).setTreasury(this.alice.address, { from: this.carol.address })).to.be.revertedWith("Ownable: caller is not the owner")
-    })
   })
 
   context("Admin Permissions", function () {
     beforeEach(async function () {
-      this.vault = await this.WigoVault.deploy(this.wigo.address, this.bank.address, this.farmer.address, this.carol.address, this.treasury.address)
+      this.vault = await this.WigoVault.deploy(this.wigo.address, this.bank.address, this.farmer.address, this.carol.address)
       await this.vault.deployed()
     })
 
@@ -158,7 +144,7 @@ describe("WigoVault", function () {
 
 
   it("Deposit and Withdraw", async function () {
-    this.vault = await this.WigoVault.deploy(this.wigo.address, this.bank.address, this.farmer.address, this.carol.address, this.treasury.address)
+    this.vault = await this.WigoVault.deploy(this.wigo.address, this.bank.address, this.farmer.address, this.carol.address)
     await this.vault.deployed()
 
     await this.wigo.connect(this.treasury).transfer(this.alice.address, getBigNumber(1000), { from: this.treasury.address })
@@ -167,15 +153,18 @@ describe("WigoVault", function () {
     await this.vault.connect(this.alice).deposit(getBigNumber(400), { from: this.alice.address })
     expect(await this.wigo.balanceOf(this.vault.address)).to.equal(0)
     expect(await this.bank.balanceOf(this.vault.address)).to.equal(getBigNumber(400))
+    expect(await this.wigo.totalBurned()).to.equal(0)
+
 
     // Wthdraw amount = 400 - 400*(0.5/100) = 398
     await this.vault.connect(this.alice).withdrawAll()
     expect(await this.wigo.balanceOf(this.alice.address)).to.equal(getBigNumber(998))
     expect(await this.bank.balanceOf(this.vault.address)).to.equal(0)
+    expect(await this.wigo.totalBurned()).to.equal(getBigNumber(2))
   })
 
   it("Harvest", async function () {
-    this.vault = await this.WigoVault.deploy(this.wigo.address, this.bank.address, this.farmer.address, this.carol.address, this.treasury.address)
+    this.vault = await this.WigoVault.deploy(this.wigo.address, this.bank.address, this.farmer.address, this.carol.address)
     await this.vault.deployed()
 
     await this.wigo.connect(this.treasury).transfer(this.alice.address, getBigNumber(1000), { from: this.treasury.address })
@@ -187,9 +176,13 @@ describe("WigoVault", function () {
     expect(await this.wigo.balanceOf(this.bob.address)).to.equal(0)
 
     await increase(duration.days(1))
-    await this.vault.connect(this.bob).harvest()
+    expect(await this.farmer.pendingWigo(0, this.vault.address)).to.equal(getBigNumber(86400))
+    await this.vault.connect(this.bob).harvest() // Pending Reward: 86401 WIGO
     expect(await this.bank.balanceOf(this.vault.address)).to.equal(getBigNumber(848569775).div(1e4))
     expect(await this.wigo.balanceOf(this.farmer.address)).to.equal(getBigNumber(848569775).div(1e4))
     expect(await this.wigo.balanceOf(this.bob.address)).to.equal(getBigNumber(2160025).div(1e4))
+    expect(await this.wigo.totalBurned()).to.equal(getBigNumber(172802).div(1e2))
+    expect(await this.wigo.balanceOf(this.vault.address)).to.equal(0)
+    expect(await this.farmer.pendingWigo(0, this.vault.address)).to.equal(0)
   })
 })

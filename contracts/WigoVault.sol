@@ -30,7 +30,6 @@ contract WigoVault is Ownable, Pausable {
     uint256 public totalShares;
     uint256 public lastHarvestedTime;
     address public admin;
-    address public treasury;
 
     uint256 public constant MAX_PERFORMANCE_FEE = 500; // 5%
     uint256 public constant MAX_CALL_FEE = 100; // 1%
@@ -63,20 +62,17 @@ contract WigoVault is Ownable, Pausable {
      * @param _receiptToken: Bank token contract
      * @param _masterfarmer: MasterFarmer contract
      * @param _admin: address of the admin
-     * @param _treasury: address of the treasury (collects fees)
      */
     constructor(
         IERC20 _token,
         IERC20 _receiptToken,
         IMasterFarmer _masterfarmer,
-        address _admin,
-        address _treasury
+        address _admin
     ) public {
         token = _token;
         receiptToken = _receiptToken;
         masterfarmer = _masterfarmer;
         admin = _admin;
-        treasury = _treasury;
 
         // Infinite approve
         IERC20(_token).safeApprove(address(_masterfarmer), uint256(-1));
@@ -167,7 +163,7 @@ contract WigoVault is Ownable, Pausable {
             uint256 currentWithdrawFee = currentAmount.mul(withdrawFee).div(
                 10000
             );
-            token.safeTransfer(treasury, currentWithdrawFee);
+            IMasterFarmer(masterfarmer).wigoBurn(currentWithdrawFee);
             currentAmount = currentAmount.sub(currentWithdrawFee);
         }
 
@@ -195,7 +191,7 @@ contract WigoVault is Ownable, Pausable {
 
         uint256 bal = available();
         uint256 currentPerformanceFee = bal.mul(performanceFee).div(10000);
-        token.safeTransfer(treasury, currentPerformanceFee);
+        IMasterFarmer(masterfarmer).wigoBurn(currentPerformanceFee);
 
         uint256 currentCallFee = bal.mul(callFee).div(10000);
         token.safeTransfer(msg.sender, currentCallFee);
@@ -214,15 +210,6 @@ contract WigoVault is Ownable, Pausable {
     function setAdmin(address _admin) external onlyOwner {
         require(_admin != address(0), "Cannot be zero address");
         admin = _admin;
-    }
-
-    /**
-     * @notice Sets treasury address
-     * @dev Only callable by the contract owner.
-     */
-    function setTreasury(address _treasury) external onlyOwner {
-        require(_treasury != address(0), "Cannot be zero address");
-        treasury = _treasury;
     }
 
     /**
