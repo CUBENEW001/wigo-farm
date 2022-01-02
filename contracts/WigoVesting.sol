@@ -14,9 +14,9 @@ contract WigoVesting {
 
     IERC20 public wigo;
     IERC20 public wigoLP;
-    address public devAddr;
-    address public seedInvestor1;
-    address public seedInvestor2;
+    address public coreTeam;
+    address public seedFunder1;
+    address public seedFunder2;
 
     TokenTimelock[] public Locks;
 
@@ -25,28 +25,31 @@ contract WigoVesting {
     constructor(
         IERC20 _wigo,
         IERC20 _wigoLP,
-        address _devAddr,
-        address _seedInvestor1,
-        address _seedInvestor2
+        address _coreTeam,
+        address _seedFunder1,
+        address _seedFunder2
     ) public {
         wigo = _wigo;
         wigoLP = _wigoLP;
-        devAddr = _devAddr;
-        seedInvestor1 = _seedInvestor1;
-        seedInvestor2 = _seedInvestor2;
+        coreTeam = _coreTeam;
+        seedFunder1 = _seedFunder1;
+        seedFunder2 = _seedFunder2;
         uint256 currentTime = block.timestamp;
 
-        createLock(wigo, seedInvestor1, currentTime.add(90 days));
-        createLock(wigo, seedInvestor1, currentTime.add(180 days));
-        createLock(wigo, seedInvestor1, currentTime.add(270 days));
-        createLock(wigo, seedInvestor1, currentTime.add(360 days));
+        // Seed Funder 1 Vesting Contracts
+        createLock(wigo, seedFunder1, currentTime.add(60 days)); // Lock 0
+        createLock(wigo, seedFunder1, currentTime.add(120 days)); // Lock 1
+        createLock(wigo, seedFunder1, currentTime.add(180 days)); // Lock 2
+        createLock(wigo, seedFunder1, currentTime.add(240 days)); // Lock 3
 
-        createLock(wigo, seedInvestor2, currentTime.add(90 days));
-        createLock(wigo, seedInvestor2, currentTime.add(180 days));
-        createLock(wigo, seedInvestor2, currentTime.add(270 days));
-        createLock(wigo, seedInvestor2, currentTime.add(360 days));
+        // Seed Funder 2 Vesting Contracts
+        createLock(wigo, seedFunder2, currentTime.add(60 days)); // Lock 4
+        createLock(wigo, seedFunder2, currentTime.add(120 days)); // Lock 5
+        createLock(wigo, seedFunder2, currentTime.add(180 days)); // Lock 6
+        createLock(wigo, seedFunder2, currentTime.add(240 days)); // Lock 7
 
-        createLock(wigoLP, devAddr, currentTime.add(360 days));
+        // Core Team Vesting Contract
+        createLock(wigoLP, coreTeam, currentTime.add(365 days)); // Lock 8
     }
 
     function createLock(
@@ -71,4 +74,5 @@ contract WigoVesting {
         require(lock <= 8, "getLockAddress: lock doesnt exist");
         return address(Locks[lock]);
     }
+
 }
