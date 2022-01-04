@@ -15,7 +15,7 @@ contract WigoToken is ERC20("WigoSwap Token", "WIGO") {
     constructor(address _treasuryAddr) public {
         treasuryAddr = _treasuryAddr;
 
-        // Mints 160,000,000 WIGO (8%) for Airdrop, IDO, Seed Investors and Private sale.
+        // Mints 160,000,000 WIGO (8%) for Airdrop, IDO and Seed Funders.
         _mint(treasuryAddr, 160000000e18);
         _totalMinted = _totalMinted.add(160000000e18);
     }
