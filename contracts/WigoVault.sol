@@ -105,8 +105,7 @@ contract WigoVault is Ownable, Pausable {
      * @notice Checks if the msg.sender is a contract or a proxy
      */
     modifier notContract() {
-        require(!_isContract(msg.sender), "contract not allowed");
-        require(msg.sender == tx.origin, "proxy contract not allowed");
+        require((!_isContract(msg.sender)) && (msg.sender == tx.origin), "contract not allowed");
         _;
     }
 
