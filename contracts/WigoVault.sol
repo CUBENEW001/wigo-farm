@@ -53,6 +53,21 @@ contract WigoVault is Ownable, Pausable {
         uint256 performanceFee,
         uint256 callFee
     );
+    event SetAdmin(address indexed sender, address indexed newAdmin);
+    event SetPerformanceFee(
+        address indexed sender,
+        uint256 indexed newPerformanceFee
+    );
+    event SetCallFee(address indexed sender, uint256 indexed newCallFee);
+    event SetWithdrawFee(
+        address indexed sender,
+        uint256 indexed newWithdrawFee
+    );
+    event SetWithdrawFeePeriod(
+        address indexed sender,
+        uint256 indexed newWithdrawFeePeriod
+    );
+    event EmergencyWithdraw(address indexed sender);
     event Pause();
     event Unpause();
 
@@ -210,6 +225,7 @@ contract WigoVault is Ownable, Pausable {
     function setAdmin(address _admin) external onlyOwner {
         require(_admin != address(0), "Cannot be zero address");
         admin = _admin;
+        emit SetAdmin(msg.sender, _admin);
     }
 
     /**
@@ -222,6 +238,7 @@ contract WigoVault is Ownable, Pausable {
             "performanceFee cannot be more than MAX_PERFORMANCE_FEE"
         );
         performanceFee = _performanceFee;
+        emit SetPerformanceFee(msg.sender, _performanceFee);
     }
 
     /**
@@ -234,6 +251,7 @@ contract WigoVault is Ownable, Pausable {
             "callFee cannot be more than MAX_CALL_FEE"
         );
         callFee = _callFee;
+        emit SetCallFee(msg.sender, _callFee);
     }
 
     /**
@@ -246,6 +264,7 @@ contract WigoVault is Ownable, Pausable {
             "withdrawFee cannot be more than MAX_WITHDRAW_FEE"
         );
         withdrawFee = _withdrawFee;
+        emit SetWithdrawFee(msg.sender, _withdrawFee);
     }
 
     /**
@@ -261,6 +280,7 @@ contract WigoVault is Ownable, Pausable {
             "withdrawFeePeriod cannot be more than MAX_WITHDRAW_FEE_PERIOD"
         );
         withdrawFeePeriod = _withdrawFeePeriod;
+        emit SetWithdrawFeePeriod(msg.sender, _withdrawFeePeriod);
     }
 
     /**
@@ -269,6 +289,7 @@ contract WigoVault is Ownable, Pausable {
      */
     function emergencyWithdraw() external onlyAdmin {
         IMasterFarmer(masterfarmer).emergencyWithdraw(0);
+        emit EmergencyWithdraw(msg.sender);
     }
 
     /**

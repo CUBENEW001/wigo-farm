@@ -82,6 +82,8 @@ contract MasterFarmer is Ownable {
     );
     event SetTreasury(address indexed user, address indexed newTreasury);
     event SetDev(address indexed user, address indexed newDev);
+    event Add(address indexed user, IERC20 indexed pair, uint256 indexed point);
+    event Set(address indexed user, uint256 indexed pid, uint256 indexed point);
 
     constructor(
         WigoToken _wigo,
@@ -159,6 +161,7 @@ contract MasterFarmer is Ownable {
             })
         );
         updateStakingPool();
+        emit Add(msg.sender, _lpToken, _allocPoint);
     }
 
     // Update the given pool's WIGO allocation point. Can only be called by the owner.
@@ -178,6 +181,7 @@ contract MasterFarmer is Ownable {
                 _allocPoint
             );
             updateStakingPool();
+            emit Set(msg.sender, _pid, _allocPoint);
         }
     }
 
