@@ -105,7 +105,10 @@ contract WigoVault is Ownable, Pausable {
      * @notice Checks if the msg.sender is a contract or a proxy
      */
     modifier notContract() {
-        require((!_isContract(msg.sender)) && (msg.sender == tx.origin), "contract not allowed");
+        require(
+            (!_isContract(msg.sender)) && (msg.sender == tx.origin),
+            "contract not allowed"
+        );
         _;
     }
 
@@ -181,6 +184,8 @@ contract WigoVault is Ownable, Pausable {
             currentAmount = currentAmount.sub(currentWithdrawFee);
         }
 
+        token.safeTransfer(msg.sender, currentAmount);
+
         if (user.shares > 0) {
             user.wigoAtLastUserAction = user.shares.mul(balanceOf()).div(
                 totalShares
@@ -188,10 +193,8 @@ contract WigoVault is Ownable, Pausable {
         } else {
             user.wigoAtLastUserAction = 0;
         }
-
+        
         user.lastUserActionTime = block.timestamp;
-
-        token.safeTransfer(msg.sender, currentAmount);
 
         emit Withdraw(msg.sender, currentAmount, _shares);
     }
