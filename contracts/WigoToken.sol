@@ -5,7 +5,7 @@ import "./OpenZeppelin/token/ERC20/ERC20.sol";
 
 // WigoToken
 contract WigoToken is ERC20("WigoSwap Token", "WIGO") {
-    uint256 private constant MAX_SUPPLY = 2000000000e18;
+    uint256 private constant MAX_SUPPLY = 2000000e18;
     uint256 public _totalMinted = 0;
     uint256 public _totalBurned = 0;
     address public treasuryAddr;
@@ -16,10 +16,10 @@ contract WigoToken is ERC20("WigoSwap Token", "WIGO") {
     constructor(address _treasuryAddr) public {
         treasuryAddr = _treasuryAddr;
 
-        // Mints 160,000,000 WIGO (8%) for Airdrop, IDO and Seed Funders.
-        _mint(treasuryAddr, 160000000e18);
-        _totalMinted = _totalMinted.add(160000000e18);
-        emit Mint(msg.sender, treasuryAddr, 160000000e18);
+        // Mints 160,000 WIGO (8%) for Airdrop, IDO and Seed Funders.
+        _mint(treasuryAddr, 160000e18);
+        _totalMinted = _totalMinted.add(160000e18);
+        emit Mint(msg.sender, treasuryAddr, 160000e18);
     }
 
     function maxSupply() public pure returns (uint256) {
